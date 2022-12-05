@@ -22,12 +22,12 @@ class ScaleRadialGauge extends StatefulWidget {
     this.isAnimate = true,
     this.animationDuration = kDefaultAnimationDuration,
     this.unit = const TextSpan(text: ''),
+    this.actualValueTextStyle,
+    this.valueTextStyle,
     Key? key,
-  })  : assert(actualValue <= maxValue,
-            'actualValue must be less than or equal to maxValue'),
+  })  : assert(actualValue <= maxValue, 'actualValue must be less than or equal to maxValue'),
         assert(size >= 140, 'size must be greater than 75'),
-        assert(actualValue >= minValue,
-            'actualValue must be greater than or equal to minValue'),
+        assert(actualValue >= minValue, 'actualValue must be greater than or equal to minValue'),
         super(key: key);
 
   /// Sets the minimum value of the gauge.
@@ -67,12 +67,14 @@ class ScaleRadialGauge extends StatefulWidget {
   /// Sets a duration in milliseconds to control the speed of the animation.
   final int animationDuration;
 
+  final TextStyle? actualValueTextStyle;
+  final TextStyle? valueTextStyle;
+
   @override
   State<ScaleRadialGauge> createState() => _ScaleRadialGaugeState();
 }
 
-class _ScaleRadialGaugeState extends State<ScaleRadialGauge>
-    with SingleTickerProviderStateMixin {
+class _ScaleRadialGaugeState extends State<ScaleRadialGauge> with SingleTickerProviderStateMixin {
   late Animation<double> animation;
   late AnimationController animationController;
 
@@ -80,17 +82,12 @@ class _ScaleRadialGaugeState extends State<ScaleRadialGauge>
   void initState() {
     super.initState();
     double sweepAngleRadian = RadialHelper.actualValueToSweepAngleRadian(
-        actualValue: widget.actualValue,
-        maxValue: widget.maxValue,
-        minValue: widget.minValue,
-        maxDegrees: 300);
+        actualValue: widget.actualValue, maxValue: widget.maxValue, minValue: widget.minValue, maxDegrees: 300);
 
     double upperBound = RadialHelper.degreesToRadians(300);
 
     animationController = AnimationController(
-        duration: RadialHelper.getDuration(
-            isAnimate: widget.isAnimate,
-            userMilliseconds: widget.animationDuration),
+        duration: RadialHelper.getDuration(isAnimate: widget.isAnimate, userMilliseconds: widget.animationDuration),
         vsync: this,
         upperBound: upperBound);
 
@@ -116,19 +113,11 @@ class _ScaleRadialGaugeState extends State<ScaleRadialGauge>
   Widget build(BuildContext context) {
     if (animationController.value !=
         RadialHelper.actualValueToSweepAngleRadian(
-            actualValue: widget.actualValue,
-            maxValue: widget.maxValue,
-            minValue: widget.minValue,
-            maxDegrees: 300)) {
+            actualValue: widget.actualValue, maxValue: widget.maxValue, minValue: widget.minValue, maxDegrees: 300)) {
       animationController.animateTo(
           RadialHelper.actualValueToSweepAngleRadian(
-              actualValue: widget.actualValue,
-              maxValue: widget.maxValue,
-              minValue: widget.minValue,
-              maxDegrees: 300),
-          duration: RadialHelper.getDuration(
-              isAnimate: widget.isAnimate,
-              userMilliseconds: widget.animationDuration));
+              actualValue: widget.actualValue, maxValue: widget.maxValue, minValue: widget.minValue, maxDegrees: 300),
+          duration: RadialHelper.getDuration(isAnimate: widget.isAnimate, userMilliseconds: widget.animationDuration));
     }
 
     return SizedBox(
@@ -160,6 +149,8 @@ class _ScaleRadialGaugeState extends State<ScaleRadialGauge>
                       maxValue: widget.maxValue,
                       actualValue: widget.actualValue,
                       decimalPlaces: widget.decimalPlaces,
+                      actualValueTextStyle: widget.actualValueTextStyle,
+                      valueTextStyle: widget.valueTextStyle,
                       unit: widget.unit,
                     ),
                   ),

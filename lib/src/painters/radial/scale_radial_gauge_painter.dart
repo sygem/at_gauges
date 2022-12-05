@@ -14,6 +14,8 @@ class ScaleRadialGaugePainter extends CustomPainter {
     required this.needleColor,
     required this.decimalPlaces,
     required this.unit,
+    this.actualValueTextStyle,
+    this.valueTextStyle,
     Key? key,
   });
   final double sweepAngle;
@@ -24,6 +26,8 @@ class ScaleRadialGaugePainter extends CustomPainter {
   final Color needleColor;
   final int decimalPlaces;
   final TextSpan unit;
+  final TextStyle? actualValueTextStyle;
+  final TextStyle? valueTextStyle;
 
   List<double> getScale(double divider) {
     List<double> scale = [];
@@ -50,8 +54,7 @@ class ScaleRadialGaugePainter extends CustomPainter {
       ..strokeWidth = 5
       ..style = PaintingStyle.stroke;
 
-    canvas.drawArc(
-        arcRect, startAngle, backgroundSweepAngle, false, backgroundArcPaint);
+    canvas.drawArc(arcRect, startAngle, backgroundSweepAngle, false, backgroundArcPaint);
 
     // Arc Pointer
     var pointerArcPaint = Paint()
@@ -84,10 +87,11 @@ class ScaleRadialGaugePainter extends CustomPainter {
       var valueLength = value.toStringAsFixed(decimalPlaces).length;
       final TextPainter valueTextPainter = TextPainter(
         text: TextSpan(
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 10,
-          ),
+          style: valueTextStyle ??
+              const TextStyle(
+                color: Colors.black,
+                fontSize: 10,
+              ),
           text: value.toStringAsFixed(decimalPlaces),
         ),
         textDirection: TextDirection.ltr,
@@ -95,28 +99,16 @@ class ScaleRadialGaugePainter extends CustomPainter {
 
       // get sweep angle for every value
       var scaleSweepAngle = RadialHelper.actualValueToSweepAngleRadian(
-          actualValue: value,
-          maxValue: maxValue,
-          maxDegrees: 300,
-          minValue: minValue);
+          actualValue: value, maxValue: maxValue, maxDegrees: 300, minValue: minValue);
       // apply sweep angle to arc angle formula
       if (value < halfOfMaxValue) {
-        var scaleOffset = Offset(
-            (center.dx) +
-                (radius - scaleSweepAngle - 15) *
-                    cos(pi / 1.5 + scaleSweepAngle),
-            (center.dx) +
-                (radius - scaleSweepAngle - 15) *
-                    sin(pi / 1.5 + scaleSweepAngle));
+        var scaleOffset = Offset((center.dx) + (radius - scaleSweepAngle - 15) * cos(pi / 1.5 + scaleSweepAngle),
+            (center.dx) + (radius - scaleSweepAngle - 15) * sin(pi / 1.5 + scaleSweepAngle));
         valueTextPainter.paint(canvas, scaleOffset);
       } else {
         var scaleOffset = Offset(
-            (center.dx) +
-                (radius - scaleSweepAngle - (20 + valueLength * 3)) *
-                    cos(pi / 1.5 + scaleSweepAngle),
-            (center.dx) +
-                (radius - scaleSweepAngle - 15) *
-                    sin(pi / 1.5 + scaleSweepAngle));
+            (center.dx) + (radius - scaleSweepAngle - (20 + valueLength * 3)) * cos(pi / 1.5 + scaleSweepAngle),
+            (center.dx) + (radius - scaleSweepAngle - 15) * sin(pi / 1.5 + scaleSweepAngle));
         valueTextPainter.paint(canvas, scaleOffset);
       }
 
@@ -138,26 +130,24 @@ class ScaleRadialGaugePainter extends CustomPainter {
       );
       var strokeCapCircleRadius = 3.0;
 
-      canvas.drawCircle(
-          strokeCapCircleOffset, strokeCapCircleRadius, strokeCapCirclePaint);
+      canvas.drawCircle(strokeCapCircleOffset, strokeCapCircleRadius, strokeCapCirclePaint);
     }
 
     final TextPainter actualValueTextPainter = TextPainter(
         text: TextSpan(
-          style: const TextStyle(color: Colors.black),
+          style: actualValueTextStyle ?? const TextStyle(color: Colors.black),
           children: [TextSpan(text: unit.text == '' ? '' : ' '), unit],
           text: RadialHelper.sweepAngleRadianToActualValue(
-                  sweepAngle: sweepAngle,
-                  maxValue: maxValue,
-                  minValue: minValue,
-                  maxDegrees: 300)
-              .toStringAsFixed(decimalPlaces),
+            sweepAngle: sweepAngle,
+            maxValue: maxValue,
+            minValue: minValue,
+            maxDegrees: 300,
+          ).toStringAsFixed(decimalPlaces),
         ),
         textDirection: TextDirection.ltr)
       ..layout();
 
-    final actualValueOffset = Offset(
-        size.width / 2 - (actualValueTextPainter.width / 2), size.height / 1.6);
+    final actualValueOffset = Offset(size.width / 2 - (actualValueTextPainter.width / 2), size.height / 1.6);
 
     actualValueTextPainter.paint(canvas, actualValueOffset);
   }
